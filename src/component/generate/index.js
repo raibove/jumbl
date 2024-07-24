@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RxCrosshair1, RxGrid, RxAvatar, RxLapTimer, RxPencil2, RxArrowRight } from "react-icons/rx";
 import './style.css';
+import Header from '../header';
 
 const Generate = () => {
   const [username, setUsername] = useState('');
@@ -17,9 +18,10 @@ const Generate = () => {
   };
 
   return (
+    <>
+    <Header />
     <div className="landing-page">
       <div className="form-container">
-        <h1 className="title">Jumbl</h1>
         <p className="subtitle">Create your custom crossword puzzle in seconds!</p>
         
         <form onSubmit={handleSubmit} className="form">
@@ -113,6 +115,7 @@ const Generate = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

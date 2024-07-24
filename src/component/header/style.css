@@ -1,0 +1,30 @@
+.header {
+    width: 100%;
+    background-color: #f7fafc;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .header-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2d3748;
+    text-decoration: none;
+  }
+  
+  .header-title:hover {
+    color: #f6e05e;
+  }
+  
