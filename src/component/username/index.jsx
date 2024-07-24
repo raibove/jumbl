@@ -10,6 +10,7 @@ const UsernamePage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    localStorage.setItem('jumbl/username', username);
     navigate('/generate', { state: { username } });
   };
 

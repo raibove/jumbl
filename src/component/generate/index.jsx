@@ -4,6 +4,23 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../header';
 import { Container, FormContainer, Subtitle, Form, FormGroup, FormLabel, FormInput, SubmitButton, IconInline } from '../../common-styled';
 
+function extractCluesAndAnswers(inputString) {
+  const lines = inputString.trim().split('\n');
+  const cluesAndWords = [];
+  const regex = /\[{answer:\s*"(.*?)",\s*clue:\s*"(.*?)"}\]/;
+
+  lines.forEach(line => {
+    const match = line.trim().match(regex);
+    if (match) {
+      const word = match[1];
+      const clue = match[2];
+      cluesAndWords.push({ word, clue });
+    }
+  });
+
+  return cluesAndWords;
+}
+
 const GeneratePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -11,10 +28,31 @@ const GeneratePage = () => {
   const [topic, setTopic] = useState('');
   const [wordCount, setWordCount] = useState(10);
   const [difficulty, setDifficulty] = useState('easy');
-
-  const handleSubmit = (e) => {
+  const [cluesAndWords, setCluesAndWords] = useState([]);
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log({ username, topic, wordCount, difficulty });
+    const inputData = {
+      type:'words',
+      topic,
+      numOfWords:wordCount,
+      difficultyLevel: difficulty
+    }
+    const resp = await fetch('http://127.0.0.1:8787/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(inputData)
+      }
+    );
+    const txt = await resp.text();
+
+    const extractedData = extractCluesAndAnswers(txt);
+    setCluesAndWords(extractedData);
+    console.log(txt)
   };
 
   return (
@@ -76,6 +114,12 @@ const GeneratePage = () => {
             </SubmitButton>
           </Form>
         </FormContainer>
+        {cluesAndWords.map((item, index) => (
+          <li key={index}>
+            <strong>Word:</strong> {item.word} <br />
+            <strong>Clue:</strong> {item.clue}
+          </li>
+        ))}
       </Container>
     </>
   );
