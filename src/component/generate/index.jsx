@@ -3,23 +3,67 @@ import { RxCrosshair1, RxGrid, RxLapTimer, RxPencil2, RxArrowRight } from "react
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../header';
 import { Container, FormContainer, Subtitle, Form, FormGroup, FormLabel, FormInput, SubmitButton, IconInline } from '../../common-styled';
+import * as clg from 'crossword-layout-generator';
 
-function extractCluesAndAnswers(inputString) {
-  const lines = inputString.trim().split('\n');
-  const cluesAndWords = [];
-  const regex = /\[{answer:\s*"(.*?)",\s*clue:\s*"(.*?)"}\]/;
-
-  lines.forEach(line => {
-    const match = line.trim().match(regex);
-    if (match) {
-      const word = match[1];
-      const clue = match[2];
-      cluesAndWords.push({ word, clue });
+const cleanAndParseInputString = (cluesString) => {
+  try {
+    // Remove unnecessary whitespace and newlines
+    const cleanedString = cluesString.replace(/\s+/g, ' ').trim();
+    
+    // Check if the string starts with '[' and ends with ']'
+    if (!cleanedString.startsWith('[') || !cleanedString.endsWith(']')) {
+      throw new Error('Invalid format: String should start with "[" and end with "]"');
     }
-  });
 
-  return cluesAndWords;
-}
+    let parsed;
+    try {
+      // Try parsing as JSON first
+      parsed = JSON.parse(cleanedString);
+    } catch (jsonError) {
+      // If JSON parsing fails, try parsing with a custom method
+      console.log('<<< uyt')
+      parsed = parseCustomFormat(cleanedString);
+    }
+
+    // Flatten the array if necessary and extract answer and clue
+    const clues = parsed.flatMap(item => {
+      if (Array.isArray(item) && item.length === 1) {
+        return item[0];
+      } else {
+        return item;
+      }
+    });
+    
+    // Validate and return the clues
+    return clues.map(clue => {
+      if (typeof clue !== 'object' || !clue.answer || !clue.clue) {
+        throw new Error('Invalid format: Each item should have "answer" and "clue" properties');
+      }
+      return { answer: clue.answer, clue: clue.clue };
+    });
+
+  } catch (error) {
+    console.error('Error parsing clues:', error.message);
+    return []; // Return an empty array in case of any error
+  }
+};
+
+// Helper function to parse custom format (non-JSON)
+const parseCustomFormat = (str) => {
+  // Remove outer brackets
+    const clueRegex = /{answer:\s*"([^"]+)",\s*clue:\s*"([^"]+)"}/g;
+    const matches = [...str.matchAll(clueRegex)];
+
+    if (matches.length === 0) {
+      throw new Error('No valid clues found in the input string');
+    }
+
+    return matches.map(match => ({
+      answer: match[1],
+      clue: match[2]
+    }));
+};
+
 
 const GeneratePage = () => {
   const location = useLocation();
@@ -29,8 +73,10 @@ const GeneratePage = () => {
   const [wordCount, setWordCount] = useState(10);
   const [difficulty, setDifficulty] = useState('easy');
   const [cluesAndWords, setCluesAndWords] = useState([]);
+  const [loading, setLoading] = useState(false);
   
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     console.log({ username, topic, wordCount, difficulty });
     const inputData = {
@@ -50,9 +96,19 @@ const GeneratePage = () => {
     );
     const txt = await resp.text();
 
-    const extractedData = extractCluesAndAnswers(txt);
-    setCluesAndWords(extractedData);
-    console.log(txt)
+    const extractedData = cleanAndParseInputString(txt)
+    //extractCluesAndAnswers(txt);
+    if(Object.keys(extractedData).length===0){
+      console.log('<< zer0')
+    }else{
+      console.log(extractedData)
+      setCluesAndWords(extractedData);
+      const layout = clg.generateLayout(extractedData);
+      console.log(layout);
+      console.log(extractedData.map((d)=> d.answer))
+    }
+    setLoading(false)
+
   };
 
   return (
@@ -109,14 +165,14 @@ const GeneratePage = () => {
               </FormInput>
             </FormGroup>
 
-            <SubmitButton type="submit">
+            <SubmitButton type="submit" disabled={loading}>
               Generate Crossword <IconInline><RxArrowRight size={18} /></IconInline>
             </SubmitButton>
           </Form>
         </FormContainer>
         {cluesAndWords.map((item, index) => (
           <li key={index}>
-            <strong>Word:</strong> {item.word} <br />
+            <strong>Word:</strong> {item.answer} <br />
             <strong>Clue:</strong> {item.clue}
           </li>
         ))}
