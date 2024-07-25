@@ -12,7 +12,8 @@ import {
   Input,
   Select,
   Button,
-} from './styled'
+} from './styled';
+// import Crossword from '@jaredreisinger/react-crossword'
 
 const cleanAndParseInputString = (cluesString) => {
   try {
@@ -32,7 +33,7 @@ const cleanAndParseInputString = (cluesString) => {
   }
 };
 
-const GeneratePage = () => {
+const GenerateCrossword = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { username } = location.state || {};
@@ -42,8 +43,9 @@ const GeneratePage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
+
+    setLoading(true);
     const inputData = {
       type: 'words',
       topic,
@@ -70,11 +72,13 @@ const GeneratePage = () => {
       console.log(extractedData.map((d) => d.answer))
     }
     setLoading(false)
-
   };
 
   return (
     <>
+      <div style={{width:'50vw', display: 'flex'}}>
+      {/* <Crossword data={pp} useStorage={false}  theme={{ allowNonSquare: true, gridBackground: 'transparent' }}/> */}
+      </div>
       <PageContainer>
         <ContentContainer>
           <Title>Jumbl</Title>
@@ -137,4 +141,4 @@ const GeneratePage = () => {
   );
 };
 
-export default GeneratePage;
+export default GenerateCrossword;
