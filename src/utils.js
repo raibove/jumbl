@@ -64,7 +64,7 @@ const inp = [
     }
   ]
 
-const convertToRequiedFormat = ()=>{
+export const convertToRequiedFormat = (inputData)=>{
 const data = {
     across: {
 
@@ -74,7 +74,7 @@ const data = {
     }
   }
 
-  inp.forEach(entry => {
+  inputData.forEach(entry => {
     if (entry.orientation !== "none") {
       const row = entry.starty - 1; // Adjusting for zero-based index
       const col = entry.startx - 1; // Adjusting for zero-based index
@@ -93,6 +93,5 @@ const data = {
       }
     }
   });
-  
-  console.log(data)
+  return data;
 }

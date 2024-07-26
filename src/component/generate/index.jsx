@@ -13,6 +13,8 @@ import {
   Select,
   Button,
 } from './styled';
+import { v4 as uuidv4 } from 'uuid';
+import { convertToRequiedFormat } from '../../utils';
 // import Crossword from '@jaredreisinger/react-crossword'
 
 const cleanAndParseInputString = (cluesString) => {
@@ -43,41 +45,76 @@ const GenerateCrossword = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+      setLoading(true);
 
-    setLoading(true);
-    const inputData = {
-      type: 'words',
-      topic,
-      numOfWords: wordCount,
-      difficultyLevel: difficulty
-    }
-    const resp = await fetch('https://jumbl-api.yikew40375.workers.dev',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(inputData)
+      const inputData = {
+        type: 'words',
+        topic,
+        numOfWords: wordCount,
+        difficultyLevel: difficulty
       }
-    );
-    const txt = await resp.text();
+      const resp = await fetch('http://127.0.0.1:8787',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(inputData)
+        }
+      );
+      const txt = await resp.text();
 
-    const extractedData = cleanAndParseInputString(txt)
-    if (Object.keys(extractedData).length === 0) {
-      console.log('<< Failed to generate crossword, please try with another word.')
-    } else {
-      const layout = clg.generateLayout(extractedData);
-      console.log(layout.result);
-      console.log(extractedData.map((d) => d.answer))
+      const extractedData = cleanAndParseInputString(txt)
+      if (Object.keys(extractedData).length === 0) {
+        console.log('<< Failed to generate crossword, please try with another word.')
+        throw new Error('Failed to generate crossword.')
+      } else {
+        const layout = clg.generateLayout(extractedData);
+        console.log(layout.result);
+        // convert data to required format and send data to backend
+        const convertedFormat = convertToRequiedFormat(layout.result);
+        
+        // check if any word is preset in clue/conversion.
+        if(Object.keys(convertedFormat.across).length === 0 && Object.keys(convertedFormat.down).length === 0){
+          throw new Error('Failed to get desired layout.')
+        }
+        console.log(convertedFormat)
+        const crossswordId =  uuidv4();
+        const inputCrosswordData = {
+          type: 'crossword',
+          id:crossswordId,
+          crossword: convertedFormat,
+          users: [{
+            score: 0,
+            name: username
+          }],
+          generatedBy: username
+        }
+        await fetch('http://127.0.0.1:8787',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(inputCrosswordData)
+          }
+        );
+
+        navigate(`/crossword/play/${crossswordId}`)
+      }
+    } catch (err) {
+      console.log(err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   };
 
   return (
     <>
-      <div style={{width:'50vw', display: 'flex'}}>
-      {/* <Crossword data={pp} useStorage={false}  theme={{ allowNonSquare: true, gridBackground: 'transparent' }}/> */}
+      <div style={{ width: '50vw', display: 'flex' }}>
+        {/* <Crossword data={pp} useStorage={false}  theme={{ allowNonSquare: true, gridBackground: 'transparent' }}/> */}
       </div>
       <PageContainer>
         <ContentContainer>
@@ -101,7 +138,7 @@ const GenerateCrossword = () => {
 
             <FormGroup>
               <Label htmlFor="wordCount">
-                Number of Words
+                Max Number of Words
               </Label>
               <Input
                 type="number"

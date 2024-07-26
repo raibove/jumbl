@@ -9,7 +9,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/crossword/generate" element={<GenerateCrossword />} />
-        <Route path="/crossword/play" element={<PlayCrossword />} />
+        <Route path="/crossword/play/:id" element={<PlayCrossword />} />
         <Route path="/" element={<UsernamePage />} />
       </Routes>
     </Router>
