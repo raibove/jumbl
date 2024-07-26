@@ -14,20 +14,16 @@ import {
   Button,
 } from './styled';
 import { v4 as uuidv4 } from 'uuid';
-import { convertToRequiedFormat } from '../../utils';
+import { BACKEND_URL, convertToRequiedFormat } from '../../utils';
 // import Crossword from '@jaredreisinger/react-crossword'
 
 const cleanAndParseInputString = (cluesString) => {
   try {
-    const regex = /\{"([^"]+)",\s*"([^"]+)"\}/g;
-    const result = [];
-    let match;
-    while (match = regex.exec(cluesString)) {
-      result.push({
-        answer: match[1],
-        clue: match[2]
-      });
-    }
+    let fixedInput = cluesString
+      .replace(/,\s*([\]}])/g, '$1')
+      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
+      .replace(/'/g, '"');
+    let result = JSON.parse(fixedInput);
     return result;
   } catch (err) {
     console.log(err);
@@ -55,7 +51,7 @@ const GenerateCrossword = () => {
         numOfWords: wordCount,
         difficultyLevel: difficulty
       }
-      const resp = await fetch('http://127.0.0.1:8787',
+      const resp = await fetch(BACKEND_URL,
         {
           method: 'POST',
           headers: {
@@ -67,6 +63,7 @@ const GenerateCrossword = () => {
       const txt = await resp.text();
 
       const extractedData = cleanAndParseInputString(txt)
+      console.log(extractedData)
       if (Object.keys(extractedData).length === 0) {
         console.log('<< Failed to generate crossword, please try with another word.')
         throw new Error('Failed to generate crossword.')
@@ -75,16 +72,16 @@ const GenerateCrossword = () => {
         console.log(layout.result);
         // convert data to required format and send data to backend
         const convertedFormat = convertToRequiedFormat(layout.result);
-        
+
         // check if any word is preset in clue/conversion.
-        if(Object.keys(convertedFormat.across).length === 0 && Object.keys(convertedFormat.down).length === 0){
+        if (Object.keys(convertedFormat.across).length === 0 && Object.keys(convertedFormat.down).length === 0) {
           throw new Error('Failed to get desired layout.')
         }
         console.log(convertedFormat)
-        const crossswordId =  uuidv4();
+        const crossswordId = uuidv4();
         const inputCrosswordData = {
-          type: 'crossword',
-          id:crossswordId,
+          type: 'crossword-save',
+          id: crossswordId,
           crossword: convertedFormat,
           users: [{
             score: 0,
@@ -92,7 +89,7 @@ const GenerateCrossword = () => {
           }],
           generatedBy: username
         }
-        await fetch('http://127.0.0.1:8787',
+        await fetch(BACKEND_URL,
           {
             method: 'POST',
             headers: {

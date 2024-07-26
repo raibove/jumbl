@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { RxArrowLeft, RxPaperPlane, RxTarget, RxTimer } from 'react-icons/rx';
 import styled, { css } from 'styled-components';
+import { BACKEND_URL } from '../../utils';
+import { useParams } from 'react-router-dom';
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -223,6 +225,7 @@ const PlayCrossword = () => {
   const [message, setMessage] = useState('');
   const [score, setScore] = useState(0);
   const [activeCell, setActiveCell] = useState({ row: -1, col: -1 });
+  const {id} = useParams();
 
   // Mock crossword data
   const crosswordData = {
@@ -255,6 +258,15 @@ const PlayCrossword = () => {
     ));
   };
 
+  const getCrossword = async ()=>{
+    const response = await fetch(`${BACKEND_URL}/${id}`);
+    const data = await response.json();
+    console.log(data);
+  }
+  useEffect(()=>{
+    getCrossword();
+  }, [])
+  
   // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
