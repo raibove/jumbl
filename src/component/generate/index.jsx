@@ -14,22 +14,8 @@ import {
   Button,
 } from './styled';
 import { v4 as uuidv4 } from 'uuid';
-import { BACKEND_URL, convertToRequiedFormat } from '../../utils';
-// import Crossword from '@jaredreisinger/react-crossword'
-
-const cleanAndParseInputString = (cluesString) => {
-  try {
-    let fixedInput = cluesString
-      .replace(/,\s*([\]}])/g, '$1')
-      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
-      .replace(/'/g, '"');
-    let result = JSON.parse(fixedInput);
-    return result;
-  } catch (err) {
-    console.log(err);
-    return [];
-  }
-};
+import { BACKEND_URL, convertToRequiedFormat, cleanAndParseInputString, backupCrosswordIds } from '../../utils';
+import Modal from '../modal';
 
 const GenerateCrossword = () => {
   const location = useLocation();
@@ -39,10 +25,12 @@ const GenerateCrossword = () => {
   const [wordCount, setWordCount] = useState(10);
   const [difficulty, setDifficulty] = useState('easy');
   const [loading, setLoading] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const handleSubmit = async (e) => {
     try {
       e.preventDefault();
+      throw new Error('dd')
       setLoading(true);
 
       const inputData = {
@@ -103,6 +91,7 @@ const GenerateCrossword = () => {
       }
     } catch (err) {
       console.log(err)
+      setShowErrorModal(true);
     } finally {
       setLoading(false)
     }
@@ -110,13 +99,10 @@ const GenerateCrossword = () => {
 
   return (
     <>
-      <div style={{ width: '50vw', display: 'flex' }}>
-      </div>
       <PageContainer>
         <ContentContainer>
           <Title>Jumbl</Title>
           <Subtitle>Create your crossword puzzle in seconds!</Subtitle>
-
           <Form onSubmit={handleSubmit}>
             <FormGroup $rotate>
               <Label htmlFor="topic">
@@ -170,6 +156,21 @@ const GenerateCrossword = () => {
           </Form>
         </ContentContainer>
       </PageContainer>
+      <Modal
+      isOpen={showErrorModal}
+      onOkay={()=>{
+        // get random url
+        // navigate to next url
+        const randomIndex = Math.floor(Math.random() * backupCrosswordIds.length);
+        navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`)
+      }}
+      onTryAgain={()=>{
+        setShowErrorModal(false);
+        setTopic('');
+      }}
+      title="Failed to generate crossword"
+      text="We faced some issue and failed to generate crossword, click okay to play with random word or please try generating again."
+    />
     </>
   );
 };

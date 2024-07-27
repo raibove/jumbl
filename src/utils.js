@@ -1,6 +1,8 @@
 // export const BACKEND_URL = 'http://127.0.0.1:8787'; 
 export const BACKEND_URL = 'https://jumbl-api.yikew40375.workers.dev';
 
+export const backupCrosswordIds = ["c58f0b8c-b14d-4e74-9831-bd73134cf89a", ]
+
 const inp = [
     {
         "answer": "downpour",
@@ -96,3 +98,17 @@ const data = {
   });
   return data;
 }
+
+export const cleanAndParseInputString = (cluesString) => {
+  try {
+    let fixedInput = cluesString
+      .replace(/,\s*([\]}])/g, '$1')
+      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
+      .replace(/'/g, '"');
+    let result = JSON.parse(fixedInput);
+    return result;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+};

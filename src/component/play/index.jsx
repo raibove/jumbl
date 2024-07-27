@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RxArrowLeft, RxPaperPlane, RxTarget, RxTimer } from 'react-icons/rx';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { BACKEND_URL } from '../../utils';
 import { useParams } from 'react-router-dom';
 import { CrosswordProvider, CrosswordGrid, DirectionClues } from '@jaredreisinger/react-crossword'
@@ -91,70 +91,9 @@ const MainGameArea = styled.div`
   }
 `;
 
-const CurrentClueBox = styled.div`
-  background-color: #93c5fd;
-  border: 4px solid black;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  transform: rotate(-1deg);
-  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
-`;
-
-const ClueTitle = styled.h2`
-  font-size: 1.875rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  transform: rotate(1deg);
-`;
-
-const ClueText = styled.p`
-  font-size: 1.5rem;
-`;
-
-// const CrosswordGrid = styled.div`
-//   border: 8px solid black;
-//   padding: 1rem;
-//   background-color: #f3f4f6;
-//   box-shadow: 12px 12px 0px 0px rgba(0,0,0,1);
-// `;
-
-const GridRow = styled.div`
-  display: flex;
-`;
-
-const GridCell = styled.input`
-  width: 3rem;
-  height: 3rem;
-  border: 4px solid black;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  transition: all 0.2s;
-
-  &:focus {
-    outline: none;
-  }
-
-  ${props => props.isActive && css`
-    background-color: #fde047;
-    transform: scale(1.1);
-    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
-    z-index: 10;
-  `}
-
-  ${props => props.isActiveRow && css`
-    background-color: #fef9c3;
-  `}
-
-  &:hover {
-    background-color: #fef9c3;
-  }
-`;
-
 const SidebarArea = styled.div`
     .direction {
-      background-color: #86efac;
+      background-color: #faa8d6;
       border: 2px solid black;
       padding: 1rem;
       transform: rotate(2deg);
@@ -162,7 +101,7 @@ const SidebarArea = styled.div`
     }
 
     .down {
-      background: #fda4af;
+      background-color: #d5b1fd;
       transform: rotate(-2deg);
     }
 
@@ -194,69 +133,6 @@ const SidebarArea = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
-`;
-
-const ClueBox = styled.div`
-  background-color: ${props => props.bgColor};
-  border: 2px solid black;
-  padding: 1rem;
-  transform: ${props => props.rotate};
-  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
-`;
-
-const ClueList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  space-y: 0.5rem;
-`;
-
-const ClueItem = styled.li`
-  font-size: 1.25rem;
-`;
-
-const HintBox = styled(ClueBox)`
-  background-color: #d8b4fe;
-`;
-
-const HintForm = styled.div`
-  display: flex;
-`;
-
-const HintInput = styled.input`
-  flex-grow: 1;
-  padding: 0.5rem 1rem;
-  border: 4px solid black;
-  font-size: 1.25rem;
-
-  &:focus {
-    outline: none;
-    border-color: #a855f7;
-  }
-`;
-
-const HintButton = styled.button`
-  background-color: black;
-  color: white;
-  padding: 0.5rem 1.5rem;
-  font-size: 1.25rem;
-  font-weight: bold;
-  border: 4px solid black;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: white;
-    color: black;
-    transform: scale(1.05);
-  }
-`;
-
-const CustomDirectionWrapper = styled.div`
-      background: red;
-
-    .direction {
-      background: red;
-    }
 `;
 
 function convertAnswersToUpperCase(crossword) {
@@ -349,37 +225,6 @@ const PlayCrossword = () => {
               <DirectionClues direction="down" />
             </SidebarArea>
           </CrosswordProvider>
-
-          {/* <SidebarArea> */}
-          {/* <ClueBox bgColor="#86efac" rotate="rotate(-2deg)">
-              <ClueTitle>Across</ClueTitle>
-              <ClueList>
-
-              </ClueList>
-            </ClueBox>
-
-            <ClueBox bgColor="#fda4af" rotate="rotate(2deg)">
-              <ClueTitle>Down</ClueTitle>
-              <ClueList>
-
-              </ClueList>
-            </ClueBox> */}
-          {/* 
-            <HintBox>
-              <ClueTitle style={{transform: 'rotate(-2deg)'}}>Need a Hint?</ClueTitle>
-              <HintForm>
-                <HintInput
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask for help..."
-                />
-                <HintButton>
-                  <RxPaperPlane size={24} />
-                </HintButton>
-              </HintForm>
-            </HintBox> */}
-          {/* </SidebarArea> */}
         </GameContent>
       </GameContainer>
     </PageContainer>
