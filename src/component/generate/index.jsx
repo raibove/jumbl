@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as clg from 'crossword-layout-generator';
 import {
@@ -12,9 +12,10 @@ import {
   Input,
   Select,
   Button,
+  SubLabel
 } from './styled';
 import { v4 as uuidv4 } from 'uuid';
-import { BACKEND_URL, convertToRequiedFormat, cleanAndParseInputString, backupCrosswordIds } from '../../utils';
+import { BACKEND_URL, convertToRequiedFormat, cleanAndParseInputString, backupCrosswordIds, crosswordTopics } from '../../utils';
 import Modal from '../modal';
 
 const GenerateCrossword = () => {
@@ -26,11 +27,11 @@ const GenerateCrossword = () => {
   const [difficulty, setDifficulty] = useState('easy');
   const [loading, setLoading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [randomTopic, setRandomTopic] = useState('Famous landmarks');
 
   const handleSubmit = async (e) => {
     try {
       e.preventDefault();
-      throw new Error('dd')
       setLoading(true);
 
       const inputData = {
@@ -86,7 +87,6 @@ const GenerateCrossword = () => {
             body: JSON.stringify(inputCrosswordData)
           }
         );
-
         navigate(`/crossword/play/${crossswordId}`)
       }
     } catch (err) {
@@ -96,6 +96,20 @@ const GenerateCrossword = () => {
       setLoading(false)
     }
   };
+
+  const selectRandomTopic = () => {
+    setTopic(randomTopic);
+    updateRandomTopic();
+  }
+
+  const updateRandomTopic = () => {
+    const randomIndex = Math.floor(Math.random() * crosswordTopics.length);
+    setRandomTopic(crosswordTopics[randomIndex])
+  }
+
+  useEffect(() => {
+    updateRandomTopic();
+  }, [])
 
   return (
     <>
@@ -116,6 +130,7 @@ const GenerateCrossword = () => {
                 $ringColor="#4ade80"
                 required
               />
+              <SubLabel>how about: <span onClick={selectRandomTopic}>{randomTopic}</span></SubLabel>
             </FormGroup>
 
             <FormGroup>
@@ -157,20 +172,20 @@ const GenerateCrossword = () => {
         </ContentContainer>
       </PageContainer>
       <Modal
-      isOpen={showErrorModal}
-      onOkay={()=>{
-        // get random url
-        // navigate to next url
-        const randomIndex = Math.floor(Math.random() * backupCrosswordIds.length);
-        navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`)
-      }}
-      onTryAgain={()=>{
-        setShowErrorModal(false);
-        setTopic('');
-      }}
-      title="Failed to generate crossword"
-      text="We faced some issue and failed to generate crossword, click okay to play with random word or please try generating again."
-    />
+        isOpen={showErrorModal}
+        onOkay={() => {
+          // get random url
+          // navigate to next url
+          const randomIndex = Math.floor(Math.random() * backupCrosswordIds.length);
+          navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`)
+        }}
+        onTryAgain={() => {
+          setShowErrorModal(false);
+          setTopic('');
+        }}
+        title="Failed to generate crossword"
+        text="We faced some issue and failed to generate crossword, click okay to play with random word or please try generating again."
+      />
     </>
   );
 };

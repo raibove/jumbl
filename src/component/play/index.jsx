@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { RxArrowLeft, RxPaperPlane, RxTarget, RxTimer } from 'react-icons/rx';
 import styled from 'styled-components';
-import { BACKEND_URL } from '../../utils';
-import { useParams } from 'react-router-dom';
+import { BACKEND_URL, backupCrosswordIds } from '../../utils';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CrosswordProvider, CrosswordGrid, DirectionClues } from '@jaredreisinger/react-crossword'
 
 const PageContainer = styled.div`
@@ -135,6 +135,25 @@ const SidebarArea = styled.div`
   gap: 2rem;
 `;
 
+const ErrorCon = styled.div`
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
+  top: 40vh;
+  position: fixed;
+  font-size: 1.3rem;
+
+  span {
+    text-decoration: underline dotted;
+    text-decoration-color: black;
+    cursor: pointer;
+  }
+
+  span:hover {
+    text-decoration: underline solid;
+  }
+`;
+
 function convertAnswersToUpperCase(crossword) {
   for (let direction in crossword) {
     for (let key in crossword[direction]) {
@@ -148,15 +167,31 @@ const PlayCrossword = () => {
   const [timeSpent, setTimeSpent] = useState(0);
   const [crosswordData, setCrosswordData] = useState(null);
   const [solvedWords, setSolvedWords] = useState(new Set());
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const { id } = useParams();
 
+  const navigateToRandomCrossword = ()=>{
+    const randomIndex = Math.floor(Math.random() * backupCrosswordIds.length);
+    navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`, {replace: true})
+    window.location.reload();
+  }
+
   const getCrossword = async () => {
-    const response = await fetch(`${BACKEND_URL}/${id}`);
-    const data = await response.json();
-    let crossword = data.crossword;
-    crossword = convertAnswersToUpperCase(crossword)
-    setCrosswordData(crossword);
+    try {
+      setLoading(true);
+      const response = await fetch(`${BACKEND_URL}/${id}`);
+      const data = await response.json();
+      let crossword = data.crossword;
+      crossword = convertAnswersToUpperCase(crossword)
+      setCrosswordData(crossword);
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -171,62 +206,69 @@ const PlayCrossword = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (!crosswordData) {
+  if (loading) {
     return <div>Loading</div>
   }
 
   return (
     <PageContainer>
-      <GameContainer>
-        <Header>
-          <Title>Jumbl Crossword</Title>
-          <HeaderControls>
-            <TimerDisplay>
-              <RxTimer size={28} style={{ marginRight: '0.5rem' }} />
-              {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
-            </TimerDisplay>
-            <ScoreDisplay>
-              <RxTarget size={28} style={{ marginRight: '0.5rem' }} />
-              Score: {solvedWords.size}
-            </ScoreDisplay>
-            <ExitButton>
-              <RxArrowLeft size={24} style={{ display: 'inline', marginRight: '0.5rem' }} /> Exit
-            </ExitButton>
-          </HeaderControls>
-        </Header>
+      {
+        error ?
+          <ErrorCon>Failed to load crossword. <br/> Try playing a <span onClick={navigateToRandomCrossword}> Random crossword</span> or <span onClick={()=>{navigate('/crossword/generate')}}>generate a new one</span>?</ErrorCon>
+          :
+          (
+            <GameContainer>
+              <Header>
+                <Title>Jumbl Crossword</Title>
+                <HeaderControls>
+                  <TimerDisplay>
+                    <RxTimer size={28} style={{ marginRight: '0.5rem' }} />
+                    {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
+                  </TimerDisplay>
+                  <ScoreDisplay>
+                    <RxTarget size={28} style={{ marginRight: '0.5rem' }} />
+                    Score: {solvedWords.size}
+                  </ScoreDisplay>
+                  <ExitButton>
+                    <RxArrowLeft size={24} style={{ display: 'inline', marginRight: '0.5rem' }} /> Exit
+                  </ExitButton>
+                </HeaderControls>
+              </Header>
 
-        <GameContent>
+              <GameContent>
 
-          <CrosswordProvider
-            data={crosswordData}
-            theme={{ allowNonSquare: true, gridBackground: 'transparent' }}
-            onAnswerCorrect={(direction, number, answer) => {
-              setSolvedWords(prevSolvedWords => {
-                prevSolvedWords.add(direction + number);
-                // Return the same Set instance
-                return prevSolvedWords
-                // return new Set(prevSolvedWords);
-              })
-              console.log('<< answer correct', direction, number, answer);
-            }}
-            onAnswerIncorrect={(direction, number, answer) => {
-              console.log('<< answer inc', direction, number, answer);
-            }}
-            onAnswerComplete={(direction, number, correct, answer) => {
-              console.log('<< answer ds', direction, number, answer, correct);
+                <CrosswordProvider
+                  data={crosswordData}
+                  theme={{ allowNonSquare: true, gridBackground: 'transparent' }}
+                  onAnswerCorrect={(direction, number, answer) => {
+                    setSolvedWords(prevSolvedWords => {
+                      prevSolvedWords.add(direction + number);
+                      // Return the same Set instance
+                      return prevSolvedWords
+                      // return new Set(prevSolvedWords);
+                    })
+                    console.log('<< answer correct', direction, number, answer);
+                  }}
+                  onAnswerIncorrect={(direction, number, answer) => {
+                    console.log('<< answer inc', direction, number, answer);
+                  }}
+                  onAnswerComplete={(direction, number, correct, answer) => {
+                    console.log('<< answer ds', direction, number, answer, correct);
 
-            }}
-          >
-            <MainGameArea>
-              <CrosswordGrid />
-            </MainGameArea>
-            <SidebarArea>
-              <DirectionClues direction="across" />
-              <DirectionClues direction="down" />
-            </SidebarArea>
-          </CrosswordProvider>
-        </GameContent>
-      </GameContainer>
+                  }}
+                >
+                  <MainGameArea>
+                    <CrosswordGrid />
+                  </MainGameArea>
+                  <SidebarArea>
+                    <DirectionClues direction="across" />
+                    <DirectionClues direction="down" />
+                  </SidebarArea>
+                </CrosswordProvider>
+              </GameContent>
+            </GameContainer>
+          )
+      }
     </PageContainer>
   );
 };

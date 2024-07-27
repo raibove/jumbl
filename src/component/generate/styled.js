@@ -27,12 +27,14 @@ export const Title = styled.h1`
   margin-bottom: 1.5rem;
   color: black;
   transform: rotate(-2deg);
+  margin: 1rem;
 `;
 
 export const Subtitle = styled.p`
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 2rem;
+  margin-top: 1rem;
   transform: rotate(1deg);
 `;
 
@@ -52,6 +54,21 @@ export const Label = styled.label`
   font-weight: bold;
   color: black;
   margin-bottom: 0.5rem;
+`;
+
+
+export const SubLabel = styled.label`
+  display: block;
+  font-size: 1rem;
+  font-weight: 400;
+  color: black;
+  margin-top: 0.3rem;
+
+  span {
+    cursor: pointer;
+    color: green;
+    font-weight: 600;
+  }
 `;
 
 export const Input = styled.input`
