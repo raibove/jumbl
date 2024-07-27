@@ -183,6 +183,10 @@ const SidebarArea = styled.div`
       font-family: math;
       line-height: 1.5rem;
     }
+
+    .correct {
+      text-decoration: line-through;
+    }
      
   @media (min-width: 768px) {
     width: 33.333333%;
@@ -255,18 +259,28 @@ const CustomDirectionWrapper = styled.div`
     }
 `;
 
+function convertAnswersToUpperCase(crossword) {
+  for (let direction in crossword) {
+    for (let key in crossword[direction]) {
+      crossword[direction][key].answer = crossword[direction][key].answer.toUpperCase();
+    }
+  }
+  return crossword;
+}
+
 const PlayCrossword = () => {
-  const [timeLeft, setTimeLeft] = useState(900);
-  const [score, setScore] = useState(0);
+  const [timeSpent, setTimeSpent] = useState(0);
   const [crosswordData, setCrosswordData] = useState(null);
+  const [solvedWords, setSolvedWords] = useState(new Set());
 
   const { id } = useParams();
 
   const getCrossword = async () => {
     const response = await fetch(`${BACKEND_URL}/${id}`);
     const data = await response.json();
-    console.log(data);
-    setCrosswordData(data.crossword);
+    let crossword = data.crossword;
+    crossword = convertAnswersToUpperCase(crossword)
+    setCrosswordData(crossword);
   }
 
   useEffect(() => {
@@ -276,7 +290,7 @@ const PlayCrossword = () => {
   // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+      setTimeSpent((prevTime) => (prevTime + 1));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -293,11 +307,11 @@ const PlayCrossword = () => {
           <HeaderControls>
             <TimerDisplay>
               <RxTimer size={28} style={{ marginRight: '0.5rem' }} />
-              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+              {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
             </TimerDisplay>
             <ScoreDisplay>
               <RxTarget size={28} style={{ marginRight: '0.5rem' }} />
-              Score: {score}
+              Score: {solvedWords.size}
             </ScoreDisplay>
             <ExitButton>
               <RxArrowLeft size={24} style={{ display: 'inline', marginRight: '0.5rem' }} /> Exit
@@ -307,7 +321,26 @@ const PlayCrossword = () => {
 
         <GameContent>
 
-          <CrosswordProvider data={crosswordData} theme={{ allowNonSquare: true, gridBackground: 'transparent' }}>
+          <CrosswordProvider
+            data={crosswordData}
+            theme={{ allowNonSquare: true, gridBackground: 'transparent' }}
+            onAnswerCorrect={(direction, number, answer) => {
+              setSolvedWords(prevSolvedWords => {
+                prevSolvedWords.add(direction + number);
+                // Return the same Set instance
+                return prevSolvedWords
+                // return new Set(prevSolvedWords);
+              })
+              console.log('<< answer correct', direction, number, answer);
+            }}
+            onAnswerIncorrect={(direction, number, answer) => {
+              console.log('<< answer inc', direction, number, answer);
+            }}
+            onAnswerComplete={(direction, number, correct, answer) => {
+              console.log('<< answer ds', direction, number, answer, correct);
+
+            }}
+          >
             <MainGameArea>
               <CrosswordGrid />
             </MainGameArea>
