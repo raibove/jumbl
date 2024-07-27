@@ -17,6 +17,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { BACKEND_URL, convertToRequiedFormat, cleanAndParseInputString, backupCrosswordIds, crosswordTopics } from '../../utils';
 import Modal from '../modal';
+import useSound from 'use-sound';
+import buttonPress from '../../assets/waiting.mp3'
 
 const GenerateCrossword = () => {
   const location = useLocation();
@@ -29,11 +31,16 @@ const GenerateCrossword = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [randomTopic, setRandomTopic] = useState('Famous landmarks');
 
+
+  const [playBtn, {stop: stopBtn}] = useSound(buttonPress);
+
+
   const handleSubmit = async (e) => {
     try {
+      playBtn()
       e.preventDefault();
       setLoading(true);
-
+      
       const inputData = {
         type: 'words',
         topic,
@@ -87,10 +94,12 @@ const GenerateCrossword = () => {
             body: JSON.stringify(inputCrosswordData)
           }
         );
+        stopBtn();
         navigate(`/crossword/play/${crossswordId}`)
       }
     } catch (err) {
       console.log(err)
+      stopBtn();
       setShowErrorModal(true);
     } finally {
       setLoading(false)

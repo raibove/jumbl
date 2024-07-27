@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { RxArrowRight } from 'react-icons/rx'
 import { useNavigate } from 'react-router-dom';
+import useSound from 'use-sound';
+import buttonPress from '../../assets/btn-press.mp3'
 
 const PageContainer = styled.div`
   height: 100vh;
@@ -55,6 +57,8 @@ const Button = styled.button`
 
 const Home = () => {
     const navigate = useNavigate();
+    const [play] = useSound(buttonPress);
+
   return (
     <PageContainer>
       <Title>Welcome to Jumbl</Title>
@@ -62,7 +66,7 @@ const Home = () => {
         The most fun and challenging crossword puzzle game you'll ever play!
         Are you ready to jumble your brain?
       </Subtitle>
-      <Button onClick={()=>{navigate('/crossword/generate')}}>
+      <Button onClick={()=>{play(); navigate('/crossword/generate')}}>
         Start Playing <RxArrowRight size={24} style={{marginLeft: '0.5rem', verticalAlign: 'middle'}} />
       </Button>
     </PageContainer>
