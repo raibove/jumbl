@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { RxArrowLeft, RxPaperPlane, RxTarget, RxTimer } from 'react-icons/rx';
+import React, { useState, useEffect, useRef } from 'react';
+import { RxArrowLeft, RxTarget, RxTimer } from 'react-icons/rx';
 import styled from 'styled-components';
 import { BACKEND_URL, backupCrosswordIds } from '../../utils';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -135,6 +135,10 @@ const SidebarArea = styled.div`
       font-size: 1rem;
       font-family: math;
       line-height: 1.5rem;
+
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none; /* IE 10 and IE 11 */
+      user-select: none;
     }
 
     .correct {
@@ -171,12 +175,15 @@ function convertAnswersToUpperCase(crossword) {
 }
 
 const PlayCrossword = () => {
+  const crosswordProvider = useRef(null);
+
   const [timeSpent, setTimeSpent] = useState(0);
   const [crosswordData, setCrosswordData] = useState(null);
   const [solvedWords, setSolvedWords] = useState(new Set());
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gameComplete, setGameComplete] = useState(false);
+  const [onExit, setOnExit]= useState(false);
 
   const [playCheer] = useSound(crowdCheer);
 
@@ -259,7 +266,7 @@ const PlayCrossword = () => {
                     <RxTarget size={28} style={{ marginRight: '0.5rem' }} />
                     Score: {solvedWords.size}
                   </ScoreDisplay>
-                  <ExitButton>
+                  <ExitButton onClick={()=>setOnExit(true)}>
                     <RxArrowLeft size={24} style={{ display: 'inline', marginRight: '0.5rem' }} /> Exit
                   </ExitButton>
                 </HeaderControls>
@@ -268,6 +275,7 @@ const PlayCrossword = () => {
               <GameContent>
 
                 <CrosswordProvider
+                  ref={crosswordProvider}
                   data={crosswordData}
                   theme={{ allowNonSquare: true, gridBackground: 'transparent' }}
                   onAnswerCorrect={(direction, number, answer) => {
@@ -318,6 +326,21 @@ const PlayCrossword = () => {
                   recycle={false}
                 />
               }
+              <Modal
+              isOpen={onExit}
+              btn2Click={() => {
+                setOnExit(false);
+              }}
+              btn1Click={() => {
+                crosswordProvider.current.fillAllAnswers();
+                setOnExit(false);
+              }}
+              title="Are you sure?"
+              text='If you want to reveal all the answers, click on "Reveal". If you think you need one more chance, click on "Cancel". I suggest choosing the second option!'
+              btnText1="Reveal"
+              btnText2="Cancel"
+              btn1Outline={true}
+              />
             </GameContainer>
           )
       }
