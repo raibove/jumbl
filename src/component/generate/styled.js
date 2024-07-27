@@ -118,3 +118,12 @@ export const Button = styled.button`
     pointer-events: all !important;
   }
 `;
+
+export const Blink = styled.span`
+  animation: blinker 4s linear infinite;
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+`;

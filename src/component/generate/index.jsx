@@ -12,13 +12,15 @@ import {
   Input,
   Select,
   Button,
-  SubLabel
+  SubLabel,
+  Blink
 } from './styled';
 import { v4 as uuidv4 } from 'uuid';
 import { BACKEND_URL, convertToRequiedFormat, cleanAndParseInputString, backupCrosswordIds, crosswordTopics } from '../../utils';
 import Modal from '../modal';
 import useSound from 'use-sound';
 import buttonPress from '../../assets/waiting.mp3'
+import suggestSelect from '../../assets/suggest-select.wav'
 
 const GenerateCrossword = () => {
   const location = useLocation();
@@ -33,14 +35,13 @@ const GenerateCrossword = () => {
 
 
   const [playBtn, {stop: stopBtn}] = useSound(buttonPress);
-
+  const [playSuggest] = useSound(suggestSelect);
 
   const handleSubmit = async (e) => {
     try {
       playBtn()
       e.preventDefault();
       setLoading(true);
-      
       const inputData = {
         type: 'words',
         topic,
@@ -107,6 +108,7 @@ const GenerateCrossword = () => {
   };
 
   const selectRandomTopic = () => {
+    playSuggest()
     setTopic(randomTopic);
     updateRandomTopic();
   }
@@ -177,23 +179,26 @@ const GenerateCrossword = () => {
             <Button type="submit" disabled={loading}>
               {loading ? <span>Loading...</span> : <span>Generate Crossword</span>}
             </Button>
+            {loading && <Blink>Your crossword is being generated, till then please enjoy the music.</Blink>}
           </Form>
         </ContentContainer>
       </PageContainer>
       <Modal
         isOpen={showErrorModal}
-        onOkay={() => {
+        btn2Click={() => {
           // get random url
           // navigate to next url
           const randomIndex = Math.floor(Math.random() * backupCrosswordIds.length);
           navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`)
         }}
-        onTryAgain={() => {
+        btn1Click={() => {
           setShowErrorModal(false);
           setTopic('');
         }}
         title="Failed to generate crossword"
         text="We faced some issue and failed to generate crossword, click okay to play with random word or please try generating again."
+        btnText1="Try Again"
+        btnText2="Okay"
       />
     </>
   );

@@ -4,6 +4,10 @@ import styled from 'styled-components';
 import { BACKEND_URL, backupCrosswordIds } from '../../utils';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CrosswordProvider, CrosswordGrid, DirectionClues } from '@jaredreisinger/react-crossword'
+import Modal from '../modal';
+import useSound from 'use-sound';
+import crowdCheer from '../../assets/cheer.mp3'
+import Confetti from 'react-confetti'
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -87,11 +91,21 @@ const GameContent = styled.div`
 
 const MainGameArea = styled.div`
   @media (min-width: 768px) {
-    width: 66.666667%;
+    width: 60vw;
   }
 `;
 
 const SidebarArea = styled.div`
+    @media (min-width: 768px) {
+      width: 30vw;
+      position: fixed;
+      right: 1rem;
+    }
+
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
     .direction {
       background-color: #faa8d6;
       border: 2px solid black;
@@ -126,13 +140,6 @@ const SidebarArea = styled.div`
     .correct {
       text-decoration: line-through;
     }
-     
-  @media (min-width: 768px) {
-    width: 33.333333%;
-  }
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
 `;
 
 const ErrorCon = styled.div`
@@ -169,13 +176,17 @@ const PlayCrossword = () => {
   const [solvedWords, setSolvedWords] = useState(new Set());
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [gameComplete, setGameComplete] = useState(false);
+
+  const [playCheer] = useSound(crowdCheer);
+
   const navigate = useNavigate();
 
   const { id } = useParams();
 
-  const navigateToRandomCrossword = ()=>{
+  const navigateToRandomCrossword = () => {
     const randomIndex = Math.floor(Math.random() * backupCrosswordIds.length);
-    navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`, {replace: true})
+    navigate(`/crossword/play/${backupCrosswordIds[randomIndex]}`, { replace: true })
     window.location.reload();
   }
 
@@ -186,6 +197,7 @@ const PlayCrossword = () => {
       const data = await response.json();
       let crossword = data.crossword;
       crossword = convertAnswersToUpperCase(crossword)
+      console.log(crossword)
       setCrosswordData(crossword);
     } catch (err) {
       setError(true);
@@ -206,6 +218,24 @@ const PlayCrossword = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    console.log('<< inn')
+    if (!crosswordData) return;
+    const totalWords = Object.keys(crosswordData.across).length + Object.keys(crosswordData.down).length
+    console.log(totalWords)
+    if (solvedWords.size === totalWords && solvedWords.size !== 0) {
+      playCheer();
+      setGameComplete(true);
+    }
+  }, [solvedWords])
+
+  const generateRandomSource = () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    w: 0,
+    h: 0
+  });
+
   if (loading) {
     return <div>Loading</div>
   }
@@ -214,7 +244,7 @@ const PlayCrossword = () => {
     <PageContainer>
       {
         error ?
-          <ErrorCon>Failed to load crossword. <br/> Try playing a <span onClick={navigateToRandomCrossword}> Random crossword</span> or <span onClick={()=>{navigate('/crossword/generate')}}>generate a new one</span>?</ErrorCon>
+          <ErrorCon>Failed to load crossword. <br /> Try playing a <span onClick={navigateToRandomCrossword}> Random crossword</span> or <span onClick={() => { navigate('/crossword/generate') }}>generate a new one</span>?</ErrorCon>
           :
           (
             <GameContainer>
@@ -243,18 +273,14 @@ const PlayCrossword = () => {
                   onAnswerCorrect={(direction, number, answer) => {
                     setSolvedWords(prevSolvedWords => {
                       prevSolvedWords.add(direction + number);
-                      // Return the same Set instance
-                      return prevSolvedWords
-                      // return new Set(prevSolvedWords);
+                      return new Set(prevSolvedWords);
                     })
-                    console.log('<< answer correct', direction, number, answer);
                   }}
                   onAnswerIncorrect={(direction, number, answer) => {
                     console.log('<< answer inc', direction, number, answer);
                   }}
                   onAnswerComplete={(direction, number, correct, answer) => {
                     console.log('<< answer ds', direction, number, answer, correct);
-
                   }}
                 >
                   <MainGameArea>
@@ -266,6 +292,32 @@ const PlayCrossword = () => {
                   </SidebarArea>
                 </CrosswordProvider>
               </GameContent>
+              <Modal
+                isOpen={gameComplete}
+                btn2Click={() => {
+                  navigateToRandomCrossword()
+                }}
+                btn1Click={() => {
+                  navigate('/crossword/generate');
+                }}
+                title="Crossword Complete 🎉"
+                text="Congratulations🎉🎉! You've successfully completed the crossword. We hope you enjoyed playing it as much as we enjoyed creating it for you. How about we play again? This time, we have something even more interesting in store for you!😉.
+                "
+                btnText1="Generate"
+                btnText2="Play Random Crossword"
+                btn1Outline={true}
+              />
+              {gameComplete &&
+                <Confetti
+                  height={window.innerHeight}
+                  width={window.innerWidth - 100}
+                  confettiSource={{ x: Math.floor(Math.random() * window.innerWidth), y: Math.floor(Math.random() * window.innerHeight), w: window.innerWidth, h: window.innerHeight }}
+                  numberOfPieces={3000}
+                  initialVelocityY={20}
+                  initialVelocityX={10}
+                  recycle={false}
+                />
+              }
             </GameContainer>
           )
       }

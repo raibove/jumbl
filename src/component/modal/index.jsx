@@ -25,19 +25,21 @@ const ModalContent = styled.div`
 
 const ModalTitle = styled.h2`
   color: #4a4a4a;
+  font-size: 1.5rem;
   margin-bottom: 20px;
 `;
 
 const ModalText = styled.p`
   color: #6a6a6a;
   margin-bottom: 30px;
+  font-size: 1rem;
 `;
 
 
 const Button = styled.button`
   cursor: pointer;
-  background-color: ${props => props.bgColor};
-  color: white;
+  background-color: ${props => props.btn1Outline ? 'inherit' : props.bgColor};
+  color: ${props => props.btn1Outline ? 'black' : 'white'};
   padding: 0.5rem 1rem;
   font-size: 1rem;
   font-weight: bold;
@@ -56,7 +58,7 @@ const ButtonCon = styled.div`
     justify-content: center;
 `;
 
-const Modal = ({ isOpen, onTryAgain, onOkay, title, text }) => {
+const Modal = ({ isOpen, btn1Click, btn2Click, title, text, btnText1, btnText2, btn1Outline=false }) => {
   if (!isOpen) return null;
 
   return (
@@ -65,8 +67,8 @@ const Modal = ({ isOpen, onTryAgain, onOkay, title, text }) => {
         <ModalTitle>{title}</ModalTitle>
         <ModalText>{text}</ModalText>
         <ButtonCon>
-        <Button onClick={onTryAgain} bgColor="#a855f7">Try Again</Button>
-        <Button onClick={onOkay} bgColor="#209313">Okay</Button>
+        <Button onClick={btn1Click} bgColor="#a855f7" btn1Outline={btn1Outline}>{btnText1}</Button>
+        <Button onClick={btn2Click} bgColor="#209313">{btnText2}</Button>
         </ButtonCon>
       </ModalContent>
     </ModalOverlay>
