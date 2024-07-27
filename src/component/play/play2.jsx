@@ -3,33 +3,36 @@ import { RxArrowLeft, RxPaperPlane, RxTarget, RxTimer } from 'react-icons/rx';
 import styled, { css } from 'styled-components';
 import { BACKEND_URL } from '../../utils';
 import { useParams } from 'react-router-dom';
-import { CrosswordProvider, CrosswordGrid, DirectionClues } from '@jaredreisinger/react-crossword'
 
 const PageContainer = styled.div`
   min-height: 100vh;
+  background-color: #fde047;
+  padding: 1rem;
   font-family: monospace;
-  background-color: aliceblue;
 `;
 
 const GameContainer = styled.div`
+  max-width: 72rem;
+  margin: 0 auto;
+  background-color: white;
+  border: 8px solid black;
+  box-shadow: 12px 12px 0px 0px rgba(0,0,0,1);
   padding: 2rem;
-  padding-top:0;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 2rem;
 `;
 
 const Title = styled.h1`
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: bold;
   transform: rotate(-2deg);
   background-color: black;
   color: white;
-  margin: 2rem 1rem;
   padding: 0.5rem 1rem;
 `;
 
@@ -42,13 +45,14 @@ const HeaderControls = styled.div`
 const TimerDisplay = styled.div`
   background-color: #ef4444;
   color: white;
-  padding: 0.3rem;
-  font-size: 1.2rem;
+  padding: 0.5rem 1rem;
+  font-size: 1.5rem;
   font-weight: bold;
   display: flex;
   align-items: center;
-  border: 2px solid black;
+  border: 4px solid black;
   transform: rotate(2deg);
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
 `;
 
 const ScoreDisplay = styled(TimerDisplay)`
@@ -58,15 +62,14 @@ const ScoreDisplay = styled(TimerDisplay)`
 `;
 
 const ExitButton = styled.button`
-  cursor: pointer;
   background-color: #a855f7;
   color: white;
-  padding: 0.4rem;
+  padding: 0.75rem 1.5rem;
   font-size: 1.25rem;
   font-weight: bold;
-  display: flex;
-  border: 2px solid black;
+  border: 4px solid black;
   transition: all 0.2s;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
 
   &:hover {
     background-color: white;
@@ -111,12 +114,12 @@ const ClueText = styled.p`
   font-size: 1.5rem;
 `;
 
-// const CrosswordGrid = styled.div`
-//   border: 8px solid black;
-//   padding: 1rem;
-//   background-color: #f3f4f6;
-//   box-shadow: 12px 12px 0px 0px rgba(0,0,0,1);
-// `;
+const CrosswordGrid = styled.div`
+  border: 8px solid black;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  box-shadow: 12px 12px 0px 0px rgba(0,0,0,1);
+`;
 
 const GridRow = styled.div`
   display: flex;
@@ -153,37 +156,6 @@ const GridCell = styled.input`
 `;
 
 const SidebarArea = styled.div`
-    .direction {
-      background-color: #86efac;
-      border: 2px solid black;
-      padding: 1rem;
-      transform: rotate(2deg);
-      box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
-    }
-
-    .down {
-      background: #fda4af;
-      transform: rotate(-2deg);
-    }
-
-    .header{
-      margin: 0.5rem;
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      transform: rotate(1deg);
-    }
-
-    .clue{
-      cursor: pointer;
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-      font-size: 1rem;
-      font-family: math;
-      line-height: 1.5rem;
-    }
-     
   @media (min-width: 768px) {
     width: 33.333333%;
   }
@@ -194,10 +166,10 @@ const SidebarArea = styled.div`
 
 const ClueBox = styled.div`
   background-color: ${props => props.bgColor};
-  border: 2px solid black;
+  border: 4px solid black;
   padding: 1rem;
   transform: ${props => props.rotate};
-  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
 `;
 
 const ClueList = styled.ul`
@@ -247,32 +219,54 @@ const HintButton = styled.button`
   }
 `;
 
-const CustomDirectionWrapper = styled.div`
-      background: red;
-
-    .direction {
-      background: red;
-    }
-`;
-
-const PlayCrossword = () => {
-  const [timeLeft, setTimeLeft] = useState(900);
+const PlayCrossword2 = () => {
+  const [currentClue, setCurrentClue] = useState('');
+  const [timeLeft, setTimeLeft] = useState(900); // 15 minutes in seconds
+  const [message, setMessage] = useState('');
   const [score, setScore] = useState(0);
-  const [crosswordData, setCrosswordData] = useState(null);
+  const [activeCell, setActiveCell] = useState({ row: -1, col: -1 });
+  const {id} = useParams();
 
-  const { id } = useParams();
+  // Mock crossword data
+  const crosswordData = {
+    size: 10,
+    across: [
+      { number: 1, clue: "Jumbl's specialty (9 letters)" },
+      { number: 4, clue: "Puzzle type (9 letters)" },
+    ],
+    down: [
+      { number: 1, clue: "What you're solving right now (9 letters)" },
+      { number: 2, clue: "Mental exercise (5 letters)" },
+    ]
+  };
 
-  const getCrossword = async () => {
+  const renderGrid = () => {
+    return Array(crosswordData.size).fill().map((_, rowIndex) => (
+      <GridRow key={rowIndex}>
+        {Array(crosswordData.size).fill().map((_, colIndex) => (
+          <GridCell
+            key={`${rowIndex}-${colIndex}`}
+            type="text"
+            maxLength="1"
+            isActive={activeCell.row === rowIndex && activeCell.col === colIndex}
+            isActiveRow={activeCell.row === rowIndex}
+            onChange={() => setScore(prevScore => prevScore + 10)}
+            onFocus={() => setActiveCell({ row: rowIndex, col: colIndex })}
+          />
+        ))}
+      </GridRow>
+    ));
+  };
+
+  const getCrossword = async ()=>{
     const response = await fetch(`${BACKEND_URL}/${id}`);
     const data = await response.json();
     console.log(data);
-    setCrosswordData(data.crossword);
   }
-
-  useEffect(() => {
+  useEffect(()=>{
     getCrossword();
   }, [])
-
+  
   // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -281,10 +275,6 @@ const PlayCrossword = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (!crosswordData) {
-    return <div>Loading</div>
-  }
-
   return (
     <PageContainer>
       <GameContainer>
@@ -292,46 +282,53 @@ const PlayCrossword = () => {
           <Title>Jumbl Crossword</Title>
           <HeaderControls>
             <TimerDisplay>
-              <RxTimer size={28} style={{ marginRight: '0.5rem' }} />
+              <RxTimer size={28} style={{marginRight: '0.5rem'}} />
               {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
             </TimerDisplay>
             <ScoreDisplay>
-              <RxTarget size={28} style={{ marginRight: '0.5rem' }} />
+              <RxTarget size={28} style={{marginRight: '0.5rem'}} />
               Score: {score}
             </ScoreDisplay>
             <ExitButton>
-              <RxArrowLeft size={24} style={{ display: 'inline', marginRight: '0.5rem' }} /> Exit
+              <RxArrowLeft size={24} style={{display: 'inline', marginRight: '0.5rem'}} /> Exit
             </ExitButton>
           </HeaderControls>
         </Header>
 
         <GameContent>
+          <MainGameArea>
+            <CurrentClueBox>
+              <ClueTitle>Current Clue</ClueTitle>
+              <ClueText>{currentClue || "Select a cell to see the clue"}</ClueText>
+            </CurrentClueBox>
+            <CrosswordGrid>
+              {renderGrid()}
+            </CrosswordGrid>
+          </MainGameArea>
 
-          <CrosswordProvider data={crosswordData} theme={{ allowNonSquare: true, gridBackground: 'transparent' }}>
-            <MainGameArea>
-              <CrosswordGrid />
-            </MainGameArea>
-            <SidebarArea>
-              <DirectionClues direction="across" />
-              <DirectionClues direction="down" />
-            </SidebarArea>
-          </CrosswordProvider>
-
-          {/* <SidebarArea> */}
-          {/* <ClueBox bgColor="#86efac" rotate="rotate(-2deg)">
+          <SidebarArea>
+            <ClueBox bgColor="#86efac" rotate="rotate(-2deg)">
               <ClueTitle>Across</ClueTitle>
               <ClueList>
-
+                {crosswordData.across.map(clue => (
+                  <ClueItem key={clue.number}>
+                    <strong>{clue.number}.</strong> {clue.clue}
+                  </ClueItem>
+                ))}
               </ClueList>
             </ClueBox>
 
             <ClueBox bgColor="#fda4af" rotate="rotate(2deg)">
               <ClueTitle>Down</ClueTitle>
               <ClueList>
-
+                {crosswordData.down.map(clue => (
+                  <ClueItem key={clue.number}>
+                    <strong>{clue.number}.</strong> {clue.clue}
+                  </ClueItem>
+                ))}
               </ClueList>
-            </ClueBox> */}
-          {/* 
+            </ClueBox>
+
             <HintBox>
               <ClueTitle style={{transform: 'rotate(-2deg)'}}>Need a Hint?</ClueTitle>
               <HintForm>
@@ -345,12 +342,12 @@ const PlayCrossword = () => {
                   <RxPaperPlane size={24} />
                 </HintButton>
               </HintForm>
-            </HintBox> */}
-          {/* </SidebarArea> */}
+            </HintBox>
+          </SidebarArea>
         </GameContent>
       </GameContainer>
     </PageContainer>
   );
 };
 
-export default PlayCrossword;
+export default PlayCrossword2;

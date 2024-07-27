@@ -23,7 +23,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "npm run build && wrangler pages deploy ./build",
-    "preview": "npm run build && wrangler pages dev ./build"
+    "preview": "npm run build && wrangler pages dev ./build",
+    "postinstall": "npm update && npm i @jaredreisinger/react-crossword"
   },
   "eslintConfig": {
     "extends": [
