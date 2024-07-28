@@ -60,13 +60,11 @@ const GenerateCrossword = () => {
       const txt = await resp.text();
 
       const extractedData = cleanAndParseInputString(txt)
-      console.log(extractedData)
       if (Object.keys(extractedData).length === 0) {
         console.log('<< Failed to generate crossword, please try with another word.')
         throw new Error('Failed to generate crossword.')
       } else {
         const layout = clg.generateLayout(extractedData);
-        console.log(layout.result);
         // convert data to required format and send data to backend
         const convertedFormat = convertToRequiedFormat(layout.result);
 
@@ -74,7 +72,6 @@ const GenerateCrossword = () => {
         if (Object.keys(convertedFormat.across).length === 0 && Object.keys(convertedFormat.down).length === 0) {
           throw new Error('Failed to get desired layout.')
         }
-        console.log(convertedFormat)
         const crossswordId = uuidv4();
         const inputCrosswordData = {
           type: 'crossword-save',

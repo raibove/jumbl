@@ -69,6 +69,9 @@ const Home = () => {
       <Button onClick={()=>{play(); navigate('/crossword/generate')}}>
         Start Playing <RxArrowRight size={24} style={{marginLeft: '0.5rem', verticalAlign: 'middle'}} />
       </Button>
+      <br/>
+      <br/>
+      <Subtitle>Made by Shweta Kale for Hashnode AI for Tommorow Hackathon</Subtitle>
     </PageContainer>
   );
 };

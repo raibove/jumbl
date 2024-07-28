@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { RxArrowLeft, RxTarget, RxTimer } from 'react-icons/rx';
+import { RxArrowLeft, RxTarget, RxTimer, RxPaperPlane } from 'react-icons/rx';
 import styled from 'styled-components';
 import { BACKEND_URL, backupCrosswordIds } from '../../utils';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,6 +8,7 @@ import Modal from '../modal';
 import useSound from 'use-sound';
 import crowdCheer from '../../assets/cheer.mp3'
 import Confetti from 'react-confetti'
+import HintChat from '../hintChat';
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -89,6 +90,13 @@ const GameContent = styled.div`
   }
 `;
 
+const GameHintContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+`;
+
+
 const MainGameArea = styled.div`
   @media (min-width: 768px) {
     width: 60vw;
@@ -98,8 +106,6 @@ const MainGameArea = styled.div`
 const SidebarArea = styled.div`
     @media (min-width: 768px) {
       width: 30vw;
-      position: fixed;
-      right: 1rem;
     }
 
     display: flex;
@@ -165,6 +171,53 @@ const ErrorCon = styled.div`
   }
 `;
 
+const HintBox = styled.div`
+  background-color: #ecc94b;
+  border: 4px solid black;
+  padding: 1rem;
+  transform: ${props => props.rotate};
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+`;
+
+const HintForm = styled.div`
+  display: flex;
+`;
+
+const HintInput = styled.input`
+  flex-grow: 1;
+  padding: 0.5rem 1rem;
+  border: 4px solid black;
+  font-size: 1.25rem;
+
+  &:focus {
+    outline: none;
+    border-color: #a855f7;
+  }
+`;
+
+const HintButton = styled.button`
+  background-color: black;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  border: 4px solid black;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: white;
+    color: black;
+    transform: scale(1.05);
+  }
+`;
+
+export const HintTitle = styled.h2`
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  transform: rotate(1deg);
+`;
+
 function convertAnswersToUpperCase(crossword) {
   for (let direction in crossword) {
     for (let key in crossword[direction]) {
@@ -183,8 +236,8 @@ const PlayCrossword = () => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gameComplete, setGameComplete] = useState(false);
-  const [onExit, setOnExit]= useState(false);
-
+  const [onExit, setOnExit] = useState(false);
+  const [currentClue, setCurrentClue] = useState(null);
   const [playCheer] = useSound(crowdCheer);
 
   const navigate = useNavigate();
@@ -204,7 +257,6 @@ const PlayCrossword = () => {
       const data = await response.json();
       let crossword = data.crossword;
       crossword = convertAnswersToUpperCase(crossword)
-      console.log(crossword)
       setCrosswordData(crossword);
     } catch (err) {
       setError(true);
@@ -226,25 +278,16 @@ const PlayCrossword = () => {
   }, []);
 
   useEffect(() => {
-    console.log('<< inn')
     if (!crosswordData) return;
     const totalWords = Object.keys(crosswordData.across).length + Object.keys(crosswordData.down).length
-    console.log(totalWords)
     if (solvedWords.size === totalWords && solvedWords.size !== 0) {
       playCheer();
       setGameComplete(true);
     }
   }, [solvedWords])
 
-  const generateRandomSource = () => ({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    w: 0,
-    h: 0
-  });
-
   if (loading) {
-    return <div>Loading</div>
+    return <PageContainer><div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '2rem', height: '100vh'}}>Loading...</div></PageContainer>
   }
 
   return (
@@ -266,12 +309,13 @@ const PlayCrossword = () => {
                     <RxTarget size={28} style={{ marginRight: '0.5rem' }} />
                     Score: {solvedWords.size}
                   </ScoreDisplay>
-                  <ExitButton onClick={()=>setOnExit(true)}>
+                  <ExitButton onClick={() => setOnExit(true)}>
                     <RxArrowLeft size={24} style={{ display: 'inline', marginRight: '0.5rem' }} /> Exit
                   </ExitButton>
                 </HeaderControls>
               </Header>
 
+              <GameHintContent>
               <GameContent>
 
                 <CrosswordProvider
@@ -285,10 +329,18 @@ const PlayCrossword = () => {
                     })
                   }}
                   onAnswerIncorrect={(direction, number, answer) => {
-                    console.log('<< answer inc', direction, number, answer);
+                    // console.log('<< answer inc', direction, number, answer);
                   }}
                   onAnswerComplete={(direction, number, correct, answer) => {
-                    console.log('<< answer ds', direction, number, answer, correct);
+                    // console.log('<< answer ds', direction, number, answer, correct);
+                  }}
+                  useStorage={true}
+                  storageKey={id}
+                  onClueSelected={(dir, cell) => {
+                    setCurrentClue(dir+cell)
+                  }}
+                  onInputSelected={(dir, cell) => {
+                    setCurrentClue(dir+cell)
                   }}
                 >
                   <MainGameArea>
@@ -299,7 +351,9 @@ const PlayCrossword = () => {
                     <DirectionClues direction="down" />
                   </SidebarArea>
                 </CrosswordProvider>
-              </GameContent>
+                </GameContent>
+                <HintChat id={id} currentClue={currentClue} crosswordData={crosswordData}/>
+              </GameHintContent>
               <Modal
                 isOpen={gameComplete}
                 btn2Click={() => {
@@ -327,19 +381,19 @@ const PlayCrossword = () => {
                 />
               }
               <Modal
-              isOpen={onExit}
-              btn2Click={() => {
-                setOnExit(false);
-              }}
-              btn1Click={() => {
-                crosswordProvider.current.fillAllAnswers();
-                setOnExit(false);
-              }}
-              title="Are you sure?"
-              text='If you want to reveal all the answers, click on "Reveal". If you think you need one more chance, click on "Cancel". I suggest choosing the second option!'
-              btnText1="Reveal"
-              btnText2="Cancel"
-              btn1Outline={true}
+                isOpen={onExit}
+                btn2Click={() => {
+                  setOnExit(false);
+                }}
+                btn1Click={() => {
+                  crosswordProvider.current.fillAllAnswers();
+                  setOnExit(false);
+                }}
+                title="Are you sure?"
+                text='If you want to reveal all the answers, click on "Reveal". If you think you need one more chance, click on "Cancel". I suggest choosing the second option!'
+                btnText1="Reveal"
+                btnText2="Cancel"
+                btn1Outline={true}
               />
             </GameContainer>
           )

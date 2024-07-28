@@ -205,14 +205,21 @@ const data = {
 
 export const cleanAndParseInputString = (cluesString) => {
   try {
-    let fixedInput = cluesString
-      .replace(/,\s*([\]}])/g, '$1')
-      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
-      .replace(/'/g, '"');
-    let result = JSON.parse(fixedInput);
+    // Try parsing the input as JSON
+    let result = JSON.parse(cluesString);
     return result;
-  } catch (err) {
-    console.log(err);
-    return [];
+  } catch (initialErr) {
+    // If JSON parsing fails, apply regex transformations and try again
+    try {
+      let fixedInput = cluesString
+        .replace(/,\s*([\]}])/g, '$1')
+        .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
+        .replace(/'/g, '"');
+      let result = JSON.parse(fixedInput);
+      return result;
+    } catch (err) {
+      console.log(err);
+      return [];
+    }
   }
 };
