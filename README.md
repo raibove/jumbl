@@ -2,10 +2,13 @@
 
 Jumbl is an AI-powered crossword puzzle generator that creates unique and challenging crosswords for users to solve. Leveraging advanced AI models and modern web technologies, Jumbl offers an engaging and interactive crossword experience.
 
+<img width="1104" alt="cover" src="https://github.com/user-attachments/assets/b48fb2f4-a2cb-4b13-9b2d-3fdc1e36eec1">
+
 ## Overview
 
 Jumbl was developed as part of the Hashnode AI for Tomorrow hackathon. The project aims to transform the classic crossword puzzle by integrating artificial intelligence to generate puzzles and provide hints, making the game more dynamic and personalized.
 You can play a [crossword](https://jumbl.pages.dev/crossword/play/c58f0b8c-b14d-4e74-9831-bd73134cf89a) and see how it works.
+You can read blog on how I developed Jumbl on [hashnode](https://shwetakale.hashnode.dev/building-jumbl-ai-based-crossword-generator)
 
 ## Features
 
