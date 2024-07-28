@@ -32,6 +32,17 @@ const Subtitle = styled.p`
   margin-bottom: 3rem;
   text-align: center;
   max-width: 600px;
+
+
+    a {
+    text-decoration: underline dotted;
+    text-decoration-color: black;
+    cursor: pointer;
+  }
+
+  a:hover {
+    text-decoration: underline solid;
+  }
 `;
 
 const Button = styled.button`
@@ -71,7 +82,7 @@ const Home = () => {
       </Button>
       <br/>
       <br/>
-      <Subtitle>Made by Shweta Kale for Hashnode AI for Tommorow Hackathon</Subtitle>
+      <Subtitle style={{fontSize: '1.1rem'}}>Made by <a href="https://x.com/shweta_kale1" target='_blank' onClick={play}>Shweta Kale</a> for <a href="https://hashnode.com/" target="_blank" onClick={play}>Hashnode</a> AI for Tommorow Hackathon</Subtitle>
     </PageContainer>
   );
 };
